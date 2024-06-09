@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 import os
 import sys
 import glob
 import h5py
 import numpy as np
+import requests
+import zipfile
+from io import BytesIO
 from scipy.spatial.transform import Rotation
 from torch.utils.data import Dataset
-
+import shutil
 
 # Part of the code is referred from: https://github.com/charlesq34/pointnet
 
@@ -20,11 +22,15 @@ def download():
         os.mkdir(DATA_DIR)
     if not os.path.exists(os.path.join(DATA_DIR, 'modelnet40_ply_hdf5_2048')):
         www = 'https://shapenet.cs.stanford.edu/media/modelnet40_ply_hdf5_2048.zip'
-        zipfile = os.path.basename(www)
-        os.system('wget %s --no-check-certificate; unzip %s' % (www, zipfile))
-        os.system('mv %s %s' % (zipfile[:-4], DATA_DIR))
-        os.system('rm %s' % (zipfile))
-
+        zipfile_name = os.path.basename(www)
+        
+        # Downloading the file
+        response = requests.get(www, verify=False)
+        if response.status_code == 200:
+            z = zipfile.ZipFile(BytesIO(response.content))
+            z.extractall(DATA_DIR)
+        else:
+            print(f"Failed to download the file from {www}")
 
 def load_data(partition):
     download()
@@ -33,7 +39,7 @@ def load_data(partition):
     all_data = []
     all_label = []
     for h5_name in glob.glob(os.path.join(DATA_DIR, 'modelnet40_ply_hdf5_2048', 'ply_data_%s*.h5' % partition)):
-        f = h5py.File(h5_name)
+        f = h5py.File(h5_name, 'r')
         data = f['data'][:].astype('float32')
         label = f['label'][:].astype('int64')
         f.close()
@@ -43,7 +49,6 @@ def load_data(partition):
     all_label = np.concatenate(all_label, axis=0)
     return all_data, all_label
 
-
 def translate_pointcloud(pointcloud):
     xyz1 = np.random.uniform(low=2. / 3., high=3. / 2., size=[3])
     xyz2 = np.random.uniform(low=-0.2, high=0.2, size=[3])
@@ -51,12 +56,10 @@ def translate_pointcloud(pointcloud):
     translated_pointcloud = np.add(np.multiply(pointcloud, xyz1), xyz2).astype('float32')
     return translated_pointcloud
 
-
 def jitter_pointcloud(pointcloud, sigma=0.01, clip=0.05):
     N, C = pointcloud.shape
     pointcloud += np.clip(sigma * np.random.randn(N, C), -1 * clip, clip)
     return pointcloud
-
 
 class ModelNet40(Dataset):
     def __init__(self, num_points, partition='train', gaussian_noise=False, unseen=False, factor=4):
@@ -124,7 +127,6 @@ class ModelNet40(Dataset):
 
     def __len__(self):
         return self.data.shape[0]
-
 
 if __name__ == '__main__':
     train = ModelNet40(1024)

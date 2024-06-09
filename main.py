@@ -6,6 +6,7 @@ from __future__ import print_function
 import os
 import gc
 import argparse
+import shutil
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -18,6 +19,7 @@ import numpy as np
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
+
 
 
 # Part of the code is referred from: https://github.com/floodsung/LearningToCompare_FSL
@@ -36,15 +38,16 @@ class IOStream:
 
 
 def _init_(args):
-    if not os.path.exists('checkpoints'):
-        os.makedirs('checkpoints')
-    if not os.path.exists('checkpoints/' + args.exp_name):
-        os.makedirs('checkpoints/' + args.exp_name)
-    if not os.path.exists('checkpoints/' + args.exp_name + '/' + 'models'):
-        os.makedirs('checkpoints/' + args.exp_name + '/' + 'models')
-    os.system('cp main.py checkpoints' + '/' + args.exp_name + '/' + 'main.py.backup')
-    os.system('cp model.py checkpoints' + '/' + args.exp_name + '/' + 'model.py.backup')
-    os.system('cp data.py checkpoints' + '/' + args.exp_name + '/' + 'data.py.backup')
+    checkpoints_dir = os.path.join('checkpoints', args.exp_name, 'models')
+    
+    # Make directories if they don't exist
+    os.makedirs(checkpoints_dir, exist_ok=True)
+    
+    # Copy files
+    shutil.copy('main.py', os.path.join('checkpoints', args.exp_name, 'main.py.backup'))
+    shutil.copy('model.py', os.path.join('checkpoints', args.exp_name, 'model.py.backup'))
+    shutil.copy('data.py', os.path.join('checkpoints', args.exp_name, 'data.py.backup'))
+
 
 
 def test_one_epoch(args, net, test_loader):
