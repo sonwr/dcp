@@ -320,12 +320,13 @@ def train(args, net, train_loader, test_loader, boardio, textio):
     best_test_t_mae_ba = np.inf
 
     for epoch in range(args.epochs):
-        scheduler.step()
+        #scheduler.step()
         train_loss, train_cycle_loss, \
         train_mse_ab, train_mae_ab, train_mse_ba, train_mae_ba, train_rotations_ab, train_translations_ab, \
         train_rotations_ab_pred, \
         train_translations_ab_pred, train_rotations_ba, train_translations_ba, train_rotations_ba_pred, \
         train_translations_ba_pred, train_eulers_ab, train_eulers_ba = train_one_epoch(args, net, train_loader, opt)
+        scheduler.step()
         test_loss, test_cycle_loss, \
         test_mse_ab, test_mae_ab, test_mse_ba, test_mae_ba, test_rotations_ab, test_translations_ab, \
         test_rotations_ab_pred, \
@@ -601,7 +602,7 @@ def main():
     if args.model == 'dcp':
         net = DCP(args).cuda()
         if args.eval:
-            if args.model_path is '':
+            if args.model_path == '':
                 model_path = 'checkpoints' + '/' + args.exp_name + '/models/model.best.t7'
             else:
                 model_path = args.model_path
