@@ -78,6 +78,7 @@ class ModelNet40(Dataset):
             elif self.partition == 'train':
                 self.data = self.data[self.label<20]
                 self.label = self.label[self.label<20]
+        print(f"Loaded {len(self.data)} samples for partition: {self.partition}")
 
     def __getitem__(self, item):
         pointcloud = self.data[item][:self.num_points]
@@ -131,6 +132,8 @@ class ModelNet40(Dataset):
 if __name__ == '__main__':
     train = ModelNet40(1024)
     test = ModelNet40(1024, 'test')
+    print(f"Number of training samples: {len(train)}")
+    print(f"Number of testing samples: {len(test)}")
     for data in train:
         print(len(data))
         break
