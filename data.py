@@ -8,6 +8,7 @@ import h5py
 import numpy as np
 import requests
 import zipfile
+import open3d as o3d
 from io import BytesIO
 from scipy.spatial.transform import Rotation
 from torch.utils.data import Dataset
@@ -60,6 +61,18 @@ def jitter_pointcloud(pointcloud, sigma=0.01, clip=0.05):
     N, C = pointcloud.shape
     pointcloud += np.clip(sigma * np.random.randn(N, C), -1 * clip, clip)
     return pointcloud
+
+
+def visualize_pointcloud(pointcloud1, pointcloud2):
+    pcd1 = o3d.geometry.PointCloud()
+    pcd1.points = o3d.utility.Vector3dVector(pointcloud1)
+    pcd1.paint_uniform_color([1, 0, 0])
+
+    pcd2 = o3d.geometry.PointCloud()
+    pcd2.points = o3d.utility.Vector3dVector(pointcloud2)
+    pcd2.paint_uniform_color([0, 0, 1])
+    
+    o3d.visualization.draw_geometries([pcd1, pcd2])
 
 class ModelNet40(Dataset):
     def __init__(self, num_points, partition='train', gaussian_noise=False, unseen=False, factor=4):
@@ -121,6 +134,15 @@ class ModelNet40(Dataset):
 
         pointcloud1 = np.random.permutation(pointcloud1.T).T
         pointcloud2 = np.random.permutation(pointcloud2.T).T
+        #visualize_pointcloud(pointcloud1.T, pointcloud2.T)
+
+
+        p1 = pointcloud1.astype('float32')
+        p2 = pointcloud2.astype('float32')
+        #visualize_pointcloud(p1.T, p2.T)
+
+
+
 
         return pointcloud1.astype('float32'), pointcloud2.astype('float32'), R_ab.astype('float32'), \
                translation_ab.astype('float32'), R_ba.astype('float32'), translation_ba.astype('float32'), \
