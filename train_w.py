@@ -383,7 +383,7 @@ def main():
         dropout = 0.0
         batch_size = 32
         test_batch_size = 10
-        epochs = 5
+        epochs = 100
         use_sgd = False
         lr = 0.001
         momentum = 0.9

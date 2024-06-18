@@ -16,7 +16,6 @@ from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 from tqdm import tqdm
 
-
 def visualize_pointcloud(pointcloud1, pointcloud2):
     pcd1 = o3d.geometry.PointCloud()
     pcd1.points = o3d.utility.Vector3dVector(pointcloud1)
@@ -59,12 +58,14 @@ def test_one_index(args, net, test_loader, index):
 
     # euler_ba
     # Transform point clouds
+    src_np = src.detach().cpu().numpy().squeeze().transpose(1, 0)
     transformed_src = transform_point_cloud(src, torch.tensor(rotation_ab_pred).cuda(), torch.tensor(translation_ab_pred).cuda())
     transformed_src_np = transformed_src.detach().cpu().numpy().squeeze().transpose(1, 0)
 
     target_np = target.detach().cpu().numpy().squeeze().transpose(1, 0)
 
     # Visualize transformed_src with target
+    visualize_pointcloud(src_np, target_np)  
     visualize_pointcloud(transformed_src_np, target_np)  
     
 
@@ -136,16 +137,6 @@ def main():
         raise Exception('Not implemented')
 
     test_one_index(args, net, test_loader, args.index_to_test)
-
-    #textio.cprint('==TESTING ONE INDEX==')
-    #textio.cprint('Rotation AB: {}'.format(rotations_ab))
-    #textio.cprint('Translation AB: {}'.format(translations_ab))
-    #textio.cprint('Predicted Rotation AB: {}'.format(rotations_ab_pred))
-    #textio.cprint('Predicted Translation AB: {}'.format(translations_ab_pred))
-    #textio.cprint('Rotation BA: {}'.format(rotations_ba))
-    #textio.cprint('Translation BA: {}'.format(translations_ba))
-    #textio.cprint('Predicted Rotation BA: {}'.format(rotations_ba_pred))
-    #textio.cprint('Predicted Translation BA: {}'.format(translations_ba_pred))
 
     print('FINISH')
 
