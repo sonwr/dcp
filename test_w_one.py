@@ -7,6 +7,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import open3d as o3d
+import time
 from torch.optim.lr_scheduler import MultiStepLR
 from data import ModelNet40
 from model_w import DCP
@@ -41,9 +42,19 @@ def test_one_index(args, net, test_loader, index):
     rotation_ba = torch.tensor(rotation_ba).unsqueeze(0).cuda()
     translation_ab = torch.tensor(translation_ab).unsqueeze(0).cuda()
     translation_ba = torch.tensor(translation_ba).unsqueeze(0).cuda()
+    
+    # src와 target의 포인트 개수 출력
+    num_src_points = src.shape[2]
+    num_target_points = target.shape[2]
+    print(f"Number of points in src: {num_src_points}")
+    print(f"Number of points in target: {num_target_points}")
 
     # net
+    start_time = time.time()
     rotation_ab_pred, translation_ab_pred, rotation_ba_pred, translation_ba_pred = net(src, target)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Net execution time: {elapsed_time:.4f} seconds")
 
     # cuda -> cpu
     rotation_ab = rotation_ab.detach().cpu().numpy()
@@ -55,6 +66,12 @@ def test_one_index(args, net, test_loader, index):
     translation_ab_pred = translation_ab_pred.detach().cpu().numpy()
     rotation_ba_pred = rotation_ba_pred.detach().cpu().numpy()
     translation_ba_pred = translation_ba_pred.detach().cpu().numpy()
+
+    
+    print("Predicted rotation_ab:")
+    print(rotation_ab_pred)
+    print("Predicted translation_ab:")
+    print(translation_ab_pred)
 
     # euler_ba
     # Transform point clouds
@@ -97,7 +114,7 @@ def main():
         dataset = 'modelnet40'
         factor = 4
         model_path = ''
-        index_to_test = 1  # New argument for specifying the index to test
+        index_to_test = 50  # New argument for specifying the index to test
 
     args = Args()
     torch.backends.cudnn.deterministic = True
